@@ -19,8 +19,8 @@ export function CalculatorPanel({ product, onClose, onSave }: Props) {
   const [quantity, setQuantity] = useState('1')
   const [unit, setUnit] = useState<ProductUnit>(product.baseUnit === 'unit' ? 'unit' : product.baseUnit)
   
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [_, setSaving] = useState(false)
+  const [, setSaved] = useState(false)
 
   const qtyNum = Number(quantity) || 0
   const total = useMemo(() => calcTotal(product, qtyNum, unit, gramsPerLb), [product, qtyNum, unit, gramsPerLb])

@@ -4,10 +4,10 @@ import type { Product } from "../types";
 import { ProductGrid } from "./ProductGrid";
 import { SearchBar } from "./SearchBar";
 import { CalculatorPanel } from "./CalculatorPanel";
-import { useSettingsStore } from "../store/settingsStore";
-import { toGrams } from "../lib/units";
+//import { useSettingsStore } from "../store/settingsStore";
+//import { toGrams } from "../lib/units";
 import { useProductStore } from "../store/productStore";
-import { usePurchaseStore } from "../store/purchaseStore";
+//import { usePurchaseStore } from "../store/purchaseStore";
 import { ProductForm } from "./ProductForm";
 import { useCalculator } from "../hooks/useCalculator";
 
@@ -24,11 +24,11 @@ export const CalculatorCompoment = ({ uid, activeInventoryId }: Props) => {
     const [editing, setEditing] = useState<Product | null | 'new'>(null)
     const query = useSearchStore((s) => s.query);
 
-    const gramsPerLb = useSettingsStore((s) => s.gramsPerLb)
+    //const gramsPerLb = useSettingsStore((s) => s.gramsPerLb)
     const { products,
         subscribe: subProducts,
-        stop: stopProducts, adjustStock, bumpUsage, addProduct, updateProduct, deleteProduct } = useProductStore();
-    const {  addPurchase } = usePurchaseStore();
+        stop: stopProducts, addProduct, updateProduct, deleteProduct } = useProductStore();
+    //const {  addPurchase } = usePurchaseStore();
 
     const {total, products: cart ,addProduct: addToCart} = useCalculator();
  
