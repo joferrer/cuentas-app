@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #f3efe2;
+  --color-paper-dim: #ece5d2;
+  --color-ink: #23261f;
+  --color-ink-soft: #5b5a4c;
+  --color-green-950: #12271b;
+  --color-green-900: #1f4d36;
+  --color-green-700: #2c6b49;
+  --color-green-100: #e4ecdd;
+  --color-gold-600: #c98a2c;
+  --color-gold-100: #f4e3bf;
+  --color-brick-600: #b0432a;
+  --color-brick-100: #f3ddd4;
+  --color-line: #d8d0bc;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+.font-tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* visible focus ring everywhere, keyboard accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-green-700);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 999px;
+}
