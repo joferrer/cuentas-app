@@ -28,15 +28,17 @@ export interface Product {
   updatedAt: number
 }
 
+export interface ProductCard{
+  product: Product,
+  quantity: number,
+  usedUnit : ProductUnit,
+  price : number
+}
+
 export interface Purchase {
   id: string
   inventoryId: string
-  productId: string
-  productName: string
-  productIcon: string
-  quantity: number
-  unit: ProductUnit
-  unitPriceUsed: number
+  products: ProductCard[]
   total: number
   createdAt: number
 }

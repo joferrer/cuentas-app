@@ -6,6 +6,7 @@ interface CartProduct {
   product : Product;
   quantity : number;
   price: number;
+  usedUnit: ProductUnit
 }
 
 export const useCalculator = () => {
@@ -20,7 +21,7 @@ export const useCalculator = () => {
     const price = calcTotal(product, quantity, inputUnit);
 
     setTotal(total => total + price);
-    setProducts([...products, {product,quantity, price}]);
+    setProducts([...products, {product,quantity, price, usedUnit: inputUnit}]);
 
   }
 

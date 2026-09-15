@@ -41,17 +41,23 @@ export function HistoryScreen({ purchases }: { purchases: Purchase[] }) {
         <div key={day}>
           <h3 className="text-xs uppercase tracking-wide text-ink-soft mb-2 px-1">{day}</h3>
           <ul className="flex flex-col gap-2">
-            {items.map((p) => (
-              <li key={p.id} className="bg-white/70 border border-line rounded-xl px-4 py-3 flex items-center gap-3">
-                <span className="text-xl">{p.productIcon}</span>
+            {items.map(({products,id}) => (
+              <li key={id} className="bg-white/70 border border-line rounded-xl px-4 py-3 flex items-center gap-3">
+                {
+                  products.map(({product: p,quantity , usedUnit,price})=>(
+                    <div>
+                      <span className="text-xl">{p.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{p.productName}</p>
+                  <p className="font-medium text-sm truncate">{p.name}</p>
                   <p className="text-xs text-ink-soft font-tabular">
-                    {formatNumber(p.quantity)} {unitLabel(p.unit, p.quantity !== 1)} ·{' '}
+                    {formatNumber(quantity)} {unitLabel(usedUnit, quantity !== 1)} ·{' '}
                     {new Date(p.createdAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
-                <span className="font-tabular font-semibold text-gold-600">{formatMoney(p.total)}</span>
+                <span className="font-tabular font-semibold text-gold-600">{formatMoney(price)}</span>
+                    </div>
+                  ))
+                }
               </li>
             ))}
           </ul>
