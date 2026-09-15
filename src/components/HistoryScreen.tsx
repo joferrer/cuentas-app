@@ -41,23 +41,68 @@ export function HistoryScreen({ purchases }: { purchases: Purchase[] }) {
         <div key={day}>
           <h3 className="text-xs uppercase tracking-wide text-ink-soft mb-2 px-1">{day}</h3>
           <ul className="flex flex-col gap-2">
-            {items.map(({products,id}) => (
-              <li key={id} className="bg-white/70 border border-line rounded-xl px-4 py-3 flex items-center gap-3">
-                {
-                  products.map(({product: p,quantity , usedUnit,price})=>(
-                    <div>
-                      <span className="text-xl">{p.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{p.name}</p>
-                  <p className="text-xs text-ink-soft font-tabular">
-                    {formatNumber(quantity)} {unitLabel(usedUnit, quantity !== 1)} ·{' '}
-                    {new Date(p.createdAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <span className="font-tabular font-semibold text-gold-600">{formatMoney(price)}</span>
+            {items.map(({ products, id,total ,createdAt}) => (
+              <li
+                key={id}
+                className="bg-white/70 border border-line rounded-xl overflow-hidden"
+              >
+                <details className="group">
+                  {/* Cabecera del acordeón */}
+                  <summary className="list-none cursor-pointer px-4 py-3 flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">
+                        Lista #{id} 
+                      </p>
+
+                      <p className="text-xs text-ink-soft">
+                        {products.length} producto{products.length !== 1 ? 's' : ''} - $ {total} -
+                        {new Date(createdAt).toLocaleTimeString('es-CO', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                      </p>
                     </div>
-                  ))
-                }
+
+                    <span className="text-xs text-ink-soft transition-transform duration-200 group-open:rotate-180">
+                      ▼
+                    </span>
+                  </summary>
+
+                  {/* Productos */}
+                  <div className="border-t border-line px-4">
+                    <div className="divide-y divide-line">
+                      {products.map(({ product: p, quantity, usedUnit, price }) => (
+                        <div
+                          key={p.id}
+                          className="py-3 flex items-center gap-3"
+                        >
+                          <span className="text-xl">
+                            {p.icon}
+                          </span>
+
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              {p.name}
+                            </p>
+
+                            <p className="text-xs text-ink-soft font-tabular">
+                              {formatNumber(quantity)}{' '}
+                              {unitLabel(usedUnit, quantity !== 1)} ·{' '}
+                              {new Date(p.createdAt).toLocaleTimeString('es-CO', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                          </div>
+
+                          <span className="font-tabular font-semibold text-gold-600">
+                            {formatMoney(price)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </details>
               </li>
             ))}
           </ul>
