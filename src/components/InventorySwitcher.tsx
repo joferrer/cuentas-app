@@ -103,7 +103,7 @@ function CreateInventoryModal({
   const [busy, setBusy] = useState(false)
 
   return (
-    <div className="fixed w-full h-screen inset-0 z-50 bg-ink/40 backdrop-blur-[2px] flex items-end sm:items-center justify-center">
+    <div className="fixed w-full h-screen inset-0 z-50 bg-ink/40 backdrop-blur-[2px] flex items-center justify-center">
       <div className="bg-paper w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl border border-line p-5">
         <h2 className="font-display text-lg font-semibold mb-4">Nuevo inventario</h2>
         <div className="flex items-center gap-3 mb-4">
