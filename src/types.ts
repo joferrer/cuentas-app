@@ -42,6 +42,17 @@ export interface Product {
   updatedAt: number
 }
 
+export interface Obligation {
+  id: string
+  inventoryId: string
+  productId: string
+  name: string
+  amount: number
+  payments: Record<string, { amount: number; paidAt: number; purchaseId: string }>
+  createdAt: number
+  updatedAt: number
+}
+
 export interface ProductCard{
   product: Product,
   quantity: number,

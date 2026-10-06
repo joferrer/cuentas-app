@@ -3,6 +3,7 @@ import { useAuthStore } from './store/authStore'
 import { useInventoryStore } from './store/inventoryStore'
 import { usePurchaseStore } from './store/purchaseStore'
 import { useSearchStore } from './store/searchStore'
+import { useObligationStore } from './store/obligationStore'
 import { useCatalogStore } from './store/catalogStore'
 import { LoginScreen } from './components/LoginScreen'
 
@@ -10,9 +11,10 @@ import { HistoryScreen } from './components/HistoryScreen'
 
 import { CalculatorCompoment } from './components/Calculator';
 import { Dashboard } from './components/Dashboard';
+import { BillsScreen } from './components/BillsScreen';
 import { HeaderComponent } from './components/ui/HeaderComponent';
 
-type Tab = 'calcular' | 'historial' | 'resumen'
+type Tab = 'calcular' | 'historial' | 'resumen' | 'pagos'
 
 export default function App() {
   const { user, initializing, signOut } = useAuthStore()
@@ -56,9 +58,13 @@ function AuthedApp({
         if (!activeInventoryId) return
         //subProducts(uid, activeInventoryId)
         subPurchases(uid, activeInventoryId)
+        const subObligations = useObligationStore.getState().subscribe
+        const stopObligations = useObligationStore.getState().stop
+        subObligations(uid, activeInventoryId)
         return () => {
             //stopProducts()
             stopPurchases()
+            stopObligations()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [uid, activeInventoryId])
@@ -103,8 +109,10 @@ function AuthedApp({
           <CalculatorCompoment uid={uid} activeInventoryId={activeInventoryId} />
         ) : tab === 'historial' ? (
           <HistoryScreen purchases={purchases} />
-        ) : (
+        ) : tab === 'resumen' ? (
           <Dashboard />
+        ) : (
+          <BillsScreen uid={uid} activeInventoryId={activeInventoryId} />
         )}
       </main>
 
@@ -113,6 +121,7 @@ function AuthedApp({
         <NavButton label="Calcular" icon="⚖️" active={tab === 'calcular'} onClick={() => setTab('calcular')} />
         <NavButton label="Historial" icon="🧾" active={tab === 'historial'} onClick={() => setTab('historial')} />
         <NavButton label="Resumen" icon="📊" active={tab === 'resumen'} onClick={() => setTab('resumen')} />
+        <NavButton label="Pagos" icon="💳" active={tab === 'pagos'} onClick={() => setTab('pagos')} />
       </nav>
 
 
