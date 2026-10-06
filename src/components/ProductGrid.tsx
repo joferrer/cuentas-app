@@ -1,15 +1,19 @@
 import type { Product } from '../types'
 import { ProductCard } from './ProductCard'
+import { ProductRow } from './ProductRow'
+
+export type ProductView = 'grid' | 'list'
 
 interface Props {
   products: Product[]
   query: string
+  view: ProductView
   onSelect: (product: Product) => void
   onEdit: (product: Product) => void
   onNew: () => void
 }
 
-export function ProductGrid({ products, query, onSelect, onEdit, onNew }: Props) {
+export function ProductGrid({ products, query, view, onSelect, onEdit, onNew }: Props) {
   const q = query.trim().toLowerCase()
   const filtered = q ? products.filter((p) => p.name.toLowerCase().includes(q)) : products
   const sorted = [...filtered].sort((a, b) => b.usageCount - a.usageCount || a.name.localeCompare(b.name))
@@ -35,6 +39,16 @@ export function ProductGrid({ products, query, onSelect, onEdit, onNew }: Props)
     return (
       <div className="text-center py-16 px-6">
         <p className="text-ink-soft text-sm">No hay productos que coincidan con "{query}".</p>
+      </div>
+    )
+  }
+
+  if (view === 'list') {
+    return (
+      <div className="flex flex-col gap-2">
+        {sorted.map((p) => (
+          <ProductRow key={p.id} product={p} onSelect={() => onSelect(p)} onEdit={() => onEdit(p)} />
+        ))}
       </div>
     )
   }

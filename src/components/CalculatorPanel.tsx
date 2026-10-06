@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { Product, ProductUnit } from '../types'
+import type { Product, ProductUnit, PriceEntry } from '../types'
 import { calcTotal, isWeightUnit, toGrams, unitLabel, WEIGHT_UNITS } from '../lib/units'
 import { formatMoney, formatNumber } from '../lib/format'
 import { useSettingsStore } from '../store/settingsStore'
@@ -7,23 +7,32 @@ import { useSettingsStore } from '../store/settingsStore'
 interface Props {
   product: Product
   onClose: () => void
-  onSave: ({ product, quantity, inputUnit }: {
-    product: Product;
-    quantity: number;
-    inputUnit: ProductUnit;
-}) => void
+  onSave: (args: {
+    product: Product
+    quantity: number
+    inputUnit: ProductUnit
+    branch: string
+    location: string
+  }) => void
 }
 
 export function CalculatorPanel({ product, onClose, onSave }: Props) {
   const gramsPerLb = useSettingsStore((s) => s.gramsPerLb)
   const [quantity, setQuantity] = useState('1')
   const [unit, setUnit] = useState<ProductUnit>(product.baseUnit === 'unit' ? 'unit' : product.baseUnit)
-  
+  const prices = product.prices ?? []
+  const [selectedIdx, setSelectedIdx] = useState<number>(0)
+
   const [_, setSaving] = useState(false)
   const [, setSaved] = useState(false)
 
   const qtyNum = Number(quantity) || 0
-  const total = useMemo(() => calcTotal(product, qtyNum, unit, gramsPerLb), [product, qtyNum, unit, gramsPerLb])
+  const selectedEntry: PriceEntry | null = selectedIdx === 0 ? null : prices[selectedIdx - 1] ?? null
+  const effectiveBasePrice = selectedEntry?.price ?? product.basePrice
+  const total = useMemo(
+    () => calcTotal({ ...product, basePrice: effectiveBasePrice }, qtyNum, unit, gramsPerLb),
+    [product, effectiveBasePrice, qtyNum, unit, gramsPerLb],
+  )
 
   const requestedGrams = isWeightUnit(unit) ? toGrams(qtyNum, unit, gramsPerLb) : qtyNum
   const overStock = requestedGrams > product.stock
@@ -31,13 +40,13 @@ export function CalculatorPanel({ product, onClose, onSave }: Props) {
   async function handleSave() {
     setSaving(true)
     try {
-       onSave(
-        {
-          inputUnit: unit,
-          quantity: qtyNum,
-          product
-        }
-       )
+       onSave({
+         inputUnit: unit,
+         quantity: qtyNum,
+         product,
+         branch: selectedEntry?.branch ?? '',
+         location: selectedEntry?.location ?? '',
+       })
       setSaved(true)
     } finally {
       setSaving(false)
@@ -56,7 +65,7 @@ export function CalculatorPanel({ product, onClose, onSave }: Props) {
             <div>
               <h2 className="font-display font-semibold leading-tight">{product.name}</h2>
               <p className="text-xs text-ink-soft font-tabular">
-                {formatMoney(product.basePrice)} / {unitLabel(product.baseUnit)}
+                {formatMoney(effectiveBasePrice)} / {unitLabel(product.baseUnit)}
               </p>
             </div>
           </div>
@@ -66,6 +75,26 @@ export function CalculatorPanel({ product, onClose, onSave }: Props) {
         </div>
 
         <div className="p-5 flex flex-col gap-4">
+          <div>
+            <label htmlFor="priceIdx" className="text-sm font-medium text-ink-soft mb-1 block">
+              Precio / sede / ubicación
+            </label>
+            <select
+              id="priceIdx"
+              value={selectedIdx}
+              onChange={(e) => setSelectedIdx(Number(e.target.value))}
+              className="w-full rounded-xl border border-line bg-white/70 px-4 py-3 outline-none focus-visible:border-green-700"
+            >
+              <option value={0}>Precio base — {formatMoney(product.basePrice)}</option>
+              {prices.map((p, i) => (
+                <option key={i} value={i + 1}>
+                  {p.branch}
+                  {p.location ? ` · ${p.location}` : ''} — {formatMoney(p.price)}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="qty" className="text-sm font-medium text-ink-soft mb-1 block">

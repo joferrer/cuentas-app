@@ -6,6 +6,10 @@ import { fileToCompressedDataUrl } from '../lib/image'
 import { equivalentPrices, unitLabel } from '../lib/units'
 import { formatMoney } from '../lib/format'
 import { useSettingsStore } from '../store/settingsStore'
+import { useCatalogStore } from '../store/catalogStore'
+import { AutocompleteInput } from './AutocompleteInput'
+import type { PriceEntry, ProductCategory } from '../types'
+import { PRODUCT_CATEGORIES, PRODUCT_CATEGORY_LABELS } from '../types'
 
 const UNIT_OPTIONS: { value: ProductUnit; label: string }[] = [
   { value: 'kg', label: 'kilogramo' },
@@ -19,19 +23,27 @@ interface Props {
   onCancel: () => void
   onSubmit: (input: ProductInput) => Promise<void>
   onDelete?: () => Promise<void>
+  uid: string
 }
 
-export function ProductForm({ initial, onCancel, onSubmit, onDelete }: Props) {
+export function ProductForm({ initial, onCancel, onSubmit, onDelete, uid }: Props) {
   const gramsPerLb = useSettingsStore((s) => s.gramsPerLb)
+  const { branches, locations, ensureBranch, ensureLocation } = useCatalogStore()
   const [name, setName] = useState(initial?.name ?? '')
   const [icon, setIcon] = useState(initial?.icon ?? '🥬')
   const [photo, setPhoto] = useState<string | null>(initial?.photo ?? null)
   const [baseUnit, setBaseUnit] = useState<ProductUnit>(initial?.baseUnit ?? 'kg')
   const [basePrice, setBasePrice] = useState(initial?.basePrice?.toString() ?? '')
   const [stock, setStock] = useState(initial?.stock?.toString() ?? '0')
+  const [prices, setPrices] = useState<PriceEntry[]>(initial?.prices ?? [])
+  const [category, setCategory] = useState<ProductCategory | ''>(initial?.category ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  function updatePriceRow(index: number, patch: Partial<PriceEntry>) {
+    setPrices((rows) => rows.map((r, i) => (i === index ? { ...r, ...patch } : r)))
+  }
 
   const priceNum = Number(basePrice) || 0
   const equiv = equivalentPrices(priceNum, baseUnit, gramsPerLb)
@@ -53,6 +65,15 @@ export function ProductForm({ initial, onCancel, onSubmit, onDelete }: Props) {
     if (priceNum <= 0) return setError('El precio debe ser mayor a 0.')
     setBusy(true)
     try {
+      const validPrices = prices
+        .filter((p) => p.branch.trim() && p.location.trim() && p.price > 0)
+        .map((p) => ({ ...p, branch: p.branch.trim(), location: p.location.trim() }))
+
+      for (const p of validPrices) {
+        await ensureBranch(uid, p.branch)
+        await ensureLocation(uid, p.location)
+      }
+
       await onSubmit({
         name: name.trim(),
         icon,
@@ -60,6 +81,8 @@ export function ProductForm({ initial, onCancel, onSubmit, onDelete }: Props) {
         baseUnit,
         basePrice: priceNum,
         stock: Number(stock) || 0,
+        prices: validPrices,
+        category: category || undefined,
       })
     } finally {
       setBusy(false)
@@ -195,6 +218,84 @@ export function ProductForm({ initial, onCancel, onSubmit, onDelete }: Props) {
                 ? 'Guarda el inventario siempre en gramos para poder convertirlo a kilo o libra.'
                 : 'Cantidad de unidades disponibles.'}
             </p>
+          </div>
+
+          <div>
+            <label htmlFor="category" className="text-sm font-medium text-ink-soft mb-1 block">
+              Categoría
+            </label>
+            <select
+              id="category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as ProductCategory | '')}
+              className="w-full rounded-xl border border-line bg-white/70 px-4 py-3 outline-none focus-visible:border-green-700"
+            >
+              <option value="">Sin categoría</option>
+              {PRODUCT_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {PRODUCT_CATEGORY_LABELS[c]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-ink-soft block">
+                Precios por sede / ubicación (opcional)
+              </label>
+              <button
+                type="button"
+                onClick={() => setPrices((rows) => [...rows, { branch: '', location: '', price: 0 }])}
+                className="text-sm text-green-900 font-medium"
+              >
+                + Agregar
+              </button>
+            </div>
+
+            {prices.length === 0 && (
+              <p className="text-xs text-ink-soft">
+                Sin filas: se usa el precio base en todos lados.
+              </p>
+            )}
+
+            <div className="flex flex-col gap-3">
+              {prices.map((row, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <div className="flex-1 flex flex-col gap-2">
+                    <AutocompleteInput
+                      value={row.branch}
+                      onChange={(v) => updatePriceRow(index, { branch: v })}
+                      options={branches.map((b) => b.name)}
+                      placeholder="Sede"
+                      className="w-full rounded-xl border border-line bg-white/70 px-3 py-2 outline-none focus-visible:border-green-700"
+                    />
+                    <AutocompleteInput
+                      value={row.location}
+                      onChange={(v) => updatePriceRow(index, { location: v })}
+                      options={locations.map((l) => l.name)}
+                      placeholder="Ubicación"
+                      className="w-full rounded-xl border border-line bg-white/70 px-3 py-2 outline-none focus-visible:border-green-700"
+                    />
+                    <input
+                      inputMode="decimal"
+                      value={row.price || ''}
+                      onChange={(e) => updatePriceRow(index, { price: Number(e.target.value.replace(/[^0-9.]/g, '')) || 0 })}
+                      placeholder="Precio"
+                      className="w-full rounded-xl border border-line bg-white/70 px-3 py-2 font-tabular outline-none focus-visible:border-green-700"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPrices((rows) => rows.filter((_, i) => i !== index))}
+                    className="text-brick-600 text-sm px-2 py-2"
+                    aria-label="Quitar fila"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {error && <p className="text-brick-600 text-sm">{error}</p>}

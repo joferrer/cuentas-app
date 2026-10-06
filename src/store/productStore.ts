@@ -10,7 +10,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import type { Product, ProductUnit } from '../types'
+import type { Product, ProductUnit, PriceEntry, ProductCategory } from '../types'
 
 export interface ProductInput {
   name: string
@@ -19,6 +19,8 @@ export interface ProductInput {
   baseUnit: ProductUnit
   basePrice: number
   stock: number
+  prices?: PriceEntry[]
+  category?: ProductCategory
 }
 
 interface ProductState {
@@ -60,6 +62,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
     await addDoc(collection(db, 'users', uid, 'inventories', inventoryId, 'products'), {
       ...input,
       photo: input.photo ?? null,
+      prices: input.prices ?? [],
       usageCount: 0,
       createdAt: now,
       updatedAt: now,

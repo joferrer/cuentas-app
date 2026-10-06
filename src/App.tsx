@@ -3,14 +3,16 @@ import { useAuthStore } from './store/authStore'
 import { useInventoryStore } from './store/inventoryStore'
 import { usePurchaseStore } from './store/purchaseStore'
 import { useSearchStore } from './store/searchStore'
+import { useCatalogStore } from './store/catalogStore'
 import { LoginScreen } from './components/LoginScreen'
 
 import { HistoryScreen } from './components/HistoryScreen'
 
 import { CalculatorCompoment } from './components/Calculator';
+import { Dashboard } from './components/Dashboard';
 import { HeaderComponent } from './components/ui/HeaderComponent';
 
-type Tab = 'calcular' | 'historial'
+type Tab = 'calcular' | 'historial' | 'resumen'
 
 export default function App() {
   const { user, initializing, signOut } = useAuthStore()
@@ -63,7 +65,13 @@ function AuthedApp({
 
   useEffect(() => {
     subInv(uid)
-    return () => stopInv()
+    const subCatalog = useCatalogStore.getState().subscribe
+    const stopCatalog = useCatalogStore.getState().stop
+    subCatalog(uid)
+    return () => {
+      stopInv()
+      stopCatalog()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid])
 
@@ -93,8 +101,10 @@ function AuthedApp({
       <main className="flex-1 px-4 py-4 max-w-3xl w-full mx-auto pb-24">
         {tab === 'calcular' ? (
           <CalculatorCompoment uid={uid} activeInventoryId={activeInventoryId} />
-        ) : (
+        ) : tab === 'historial' ? (
           <HistoryScreen purchases={purchases} />
+        ) : (
+          <Dashboard />
         )}
       </main>
 
@@ -102,6 +112,7 @@ function AuthedApp({
       <nav className="fixed bottom-0 inset-x-0 z-20 bg-paper/95 backdrop-blur border-t border-line px-4 py-2 flex justify-around">
         <NavButton label="Calcular" icon="⚖️" active={tab === 'calcular'} onClick={() => setTab('calcular')} />
         <NavButton label="Historial" icon="🧾" active={tab === 'historial'} onClick={() => setTab('historial')} />
+        <NavButton label="Resumen" icon="📊" active={tab === 'resumen'} onClick={() => setTab('resumen')} />
       </nav>
 
 
